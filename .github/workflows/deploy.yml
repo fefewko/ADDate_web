@@ -17,8 +17,34 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Wrangler 4 обязателен: поддержка _headers у Workers Static Assets
+          # появилась в 4.x, а wrangler-action@v3 по умолчанию ставит 3.90.0
+          # (из-за этого web/_headers раньше игнорировался).
+          wranglerVersion: "4.159.0"
           command: deploy
+
+      - name: Verify deployment
+        run: |
+          set -euo pipefail
+          base=https://web.addate.ru
+
+          spa=000
+          for _ in $(seq 1 12); do
+            spa=$(curl -s -o /dev/null -w '%{http_code}' "$base/signin" || true)
+            [ "$spa" = "200" ] && break
+            sleep 5
+          done
+          echo "GET /signin -> $spa"
+          [ "$spa" = "200" ]
+
+          js=$(grep -o '/_expo/static/js/web/[^"]*\.js' web/index.html | head -n1 | xargs basename)
+          headers=$(curl -sI "$base/_expo/static/js/web/$js")
+          echo "$headers" | grep -qi '^cache-control:.*immutable' || {
+            echo "Cache-Control для $js не применился — проверьте web/_headers и версию wrangler"
+            echo "$headers"
+            exit 1
+          }

@@ -1,5 +1,20 @@
-# Cloudflare Workers Static Assets — заголовки для ADDate web app
+# Cloudflare Workers static assets — заголовки для ADDate web (web.addate.ru)
+#
+# Файл лежит в каталоге assets (./web) и разбирается Wrangler'ом: сам он
+# не отдаётся как статический файл. Для разбора нужен wrangler 4.x —
+# версия зафиксирована в .github/workflows/deploy.yml.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(self)
+  Strict-Transport-Security: max-age=31536000
+
 /
+  Cache-Control: no-cache, must-revalidate
+
+/index.html
   Cache-Control: no-cache, must-revalidate
 
 /_expo/*
@@ -7,8 +22,3 @@
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
-
-/*
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  X-Frame-Options: DENY

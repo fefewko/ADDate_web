@@ -4,4 +4,6 @@ compatibility_date = "2026-09-28"
 [assets]
 directory = "./web"
 html_handling = "auto-trailing-slash"
-not_found_handling = "none"
+# SPA: клиентские маршруты (/signin, /feed, /chat/:id, ...) должны отдавать
+# index.html с кодом 200, а не пустой 404 при перезагрузке/прямом переходе.
+not_found_handling = "single-page-application"
